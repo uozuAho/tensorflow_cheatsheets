@@ -9,3 +9,5 @@ pip install -r requirements.txt
 
 # todo
 - see inline todos
+- save/load trained model
+- save checkpoints, evaluate along the way
