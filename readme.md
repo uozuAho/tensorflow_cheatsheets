@@ -10,6 +10,5 @@ python beginner_train_mnist.py
 ```
 
 # todo
-- see inline todos
 - save/load trained model
 - save checkpoints, evaluate along the way

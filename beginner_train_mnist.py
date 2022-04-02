@@ -14,6 +14,10 @@ def main():
     x_train, x_test = x_train / 255.0, x_test / 255.0
 
     model = build_model()
+    print("model details:")
+    print(f'input shape: {model.input_shape}')
+    print(f'output shape: {model.output_shape}')
+    model.summary()
 
     print("Using the untrained model to read a few digits")
     for _ in range(3):
@@ -37,15 +41,21 @@ def main():
 
 
 def build_model():
+    # A Sequential model is appropriate for a plain stack of layers where each
+    # layer has exactly one input tensor and one output tensor. See
+    # https://keras.io/guides/sequential_model/
     model = tf.keras.models.Sequential([
-        # todo: what are all these
+        # flatten: turns (28, 28) input into flat 784
         tf.keras.layers.Flatten(input_shape=(28, 28)),
+        # 'just your regular densely connected NN layer: https://keras.io/api/layers/core_layers/dense/
         tf.keras.layers.Dense(128, activation='relu'),
+        # dropout: randomly sets input units to 0 during training, with the set
+        # frequency. See https://keras.io/api/layers/regularization_layers/dropout/
         tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(10)
     ])
 
-    # todo: what's this
+    # losses - what the model seeks to minimise: https://keras.io/api/losses/
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
     model.compile(
