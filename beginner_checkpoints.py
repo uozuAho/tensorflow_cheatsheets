@@ -5,7 +5,6 @@
 """
 import os
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 
 CHECKPOINTS_PATH = './checkpoints/ckpt'
@@ -53,17 +52,6 @@ def build_checkpoint_callback():
         monitor='val_accuracy',
         mode='max',
         save_best_only=False)
-
-
-def predict_digit(model, input):
-    predictions = model(input).numpy()
-    return tf.nn.softmax(predictions).numpy().argmax()
-
-
-def show_digit(digit):
-    plt.figure()
-    plt.imshow(digit[0], cmap='gray')
-    plt.show()
 
 
 if __name__ == "__main__":

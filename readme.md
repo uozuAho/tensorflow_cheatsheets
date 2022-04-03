@@ -8,6 +8,3 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python beginner_train_mnist.py
 ```
-
-# todo
-- save/load trained model
