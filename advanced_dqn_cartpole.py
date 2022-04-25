@@ -1,4 +1,6 @@
 """
+Trains a DQN agent to play 'cart pole'.
+
 From https://www.tensorflow.org/agents/tutorials/1_dqn_tutorial
 
 You should see a bunch of console output as the model trains, then a plot
@@ -107,18 +109,8 @@ def main():
     plt.ylim(top=250)
     plt.show()
 
-    # def create_policy_eval_video(policy, filename, num_episodes=5, fps=30):
-    #   filename = filename + ".mp4"
-    #   with imageio.get_writer(filename, fps=fps) as video:
-    #     for _ in range(num_episodes):
-    #       time_step = eval_env.reset()
-    #       video.append_data(eval_py_env.render())
-    #       while not time_step.is_last():
-    #         action_step = policy.action(time_step)
-    #         time_step = eval_env.step(action_step.action)
-    #         video.append_data(eval_py_env.render())
-
-    # create_policy_eval_video(random_policy, "rando-agent")
+    create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
+    create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
 
 
 def print_env_details(env):
@@ -248,6 +240,18 @@ def train(env, train_py_env, eval_env, agent) -> List[float]:
             returns.append(avg_return)
 
     return returns
+
+
+def create_policy_eval_video(env, py_env, policy, filename, num_episodes=5, fps=30):
+    filename = filename + ".mp4"
+    with imageio.get_writer(filename, fps=fps) as video:
+        for _ in range(num_episodes):
+            time_step = env.reset()
+            video.append_data(py_env.render())
+            while not time_step.is_last():
+                action_step = policy.action(time_step)
+                time_step = env.step(action_step.action)
+                video.append_data(py_env.render())
 
 
 if __name__ == "__main__":
