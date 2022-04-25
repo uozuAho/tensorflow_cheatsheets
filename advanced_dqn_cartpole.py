@@ -56,11 +56,6 @@ num_eval_episodes = 10
 
 def main():
     env_name = 'CartPole-v0'
-    env = suite_gym.load(env_name)
-    env.reset()
-
-    print_env_details(env)
-
     train_py_env = suite_gym.load(env_name)
     eval_py_env = suite_gym.load(env_name)
 
@@ -71,7 +66,7 @@ def main():
 
     agent = build_dqn_agent(train_env)
 
-    returns = train(env, train_py_env, eval_env, agent)
+    returns = train(train_py_env, eval_env, agent)
 
     plot_returns_vs_iterations(returns, range(0, num_iterations + 1, eval_interval))
 
@@ -160,7 +155,7 @@ def compute_avg_return(environment, policy, num_episodes=10):
     return avg_return.numpy()[0]
 
 
-def train(env, train_py_env, eval_env, agent) -> List[float]:
+def train(train_py_env, eval_env, agent) -> List[float]:
     table_name = 'uniform_table'
     replay_buffer_signature = tensor_spec.from_spec(
         agent.collect_data_spec)
@@ -201,7 +196,7 @@ def train(env, train_py_env, eval_env, agent) -> List[float]:
 
     # Create a driver to collect experience.
     collect_driver = py_driver.PyDriver(
-        env,
+        train_py_env,
         py_tf_eager_policy.PyTFEagerPolicy(
         agent.collect_policy, use_tf_function=True),
         [rb_observer],
@@ -218,7 +213,7 @@ def train(env, train_py_env, eval_env, agent) -> List[float]:
         time_step, _ = collect_driver.run(time_step)
 
         # Sample a batch of data from the buffer and update the agent's network.
-        experience, unused_info = next(iterator)
+        experience, _ = next(iterator)
         train_loss = agent.train(experience).loss
 
         step = agent.train_step_counter.numpy()
