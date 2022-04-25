@@ -64,10 +64,12 @@ def main():
     train_py_env = suite_gym.load(env_name)
     eval_py_env = suite_gym.load(env_name)
 
+    # wrap gym environments for use with tensorflow
+    # (these use tensors instead of numpy arrays)
     train_env = tf_py_environment.TFPyEnvironment(train_py_env)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
-    agent = build_dqn_agent(env, train_env)
+    agent = build_dqn_agent(train_env)
 
     returns = train(env, train_py_env, eval_env, agent)
 
@@ -79,15 +81,15 @@ def main():
     # create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
 
 
-def build_dqn_agent(env, train_env):
+def build_dqn_agent(env):
     q_net = build_q_network(env)
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     train_step_counter = tf.Variable(0)
 
     agent = dqn_agent.DqnAgent(
-        train_env.time_step_spec(),
-        train_env.action_spec(),
+        env.time_step_spec(),
+        env.action_spec(),
         q_network=q_net,
         optimizer=optimizer,
         td_errors_loss_fn=common.element_wise_squared_loss,
