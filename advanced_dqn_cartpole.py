@@ -42,7 +42,7 @@ import matplotlib.image as img
 import imageio
 
 # turn this up to >3000 to see decent training results
-num_iterations = 1000 # @param {type:"integer"}
+num_iterations = 200 # @param {type:"integer"}
 eval_interval = num_iterations // 10  # @param {type:"integer"}
 
 initial_collect_steps = 100  # @param {type:"integer"}
@@ -102,15 +102,17 @@ def main():
 
     returns = train(env, train_py_env, eval_env, agent)
 
-    iterations = range(0, num_iterations + 1, eval_interval)
+    plot_returns_vs_iterations(returns, range(0, num_iterations + 1, eval_interval))
+    # create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
+    # create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
+
+
+def plot_returns_vs_iterations(returns, iterations):
     plt.plot(iterations, returns)
     plt.ylabel('Average Return')
     plt.xlabel('Iterations')
     plt.ylim(top=250)
     plt.show()
-
-    create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
-    create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
 
 
 def print_env_details(env):
