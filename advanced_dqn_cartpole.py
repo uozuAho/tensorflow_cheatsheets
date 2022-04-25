@@ -11,10 +11,6 @@ You may need the following packages on linux for this to work:
 
 sudo apt-get update
 sudo apt-get install -y xvfb ffmpeg freeglut3-dev
-
-## todo
-- why 3 different envs?
-- print NN details
 """
 
 from __future__ import absolute_import, division, print_function
@@ -64,10 +60,12 @@ def main():
     train_env = tf_py_environment.TFPyEnvironment(train_py_env)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
-    agent = build_dqn_agent(train_env)
-
+    qnet = build_q_network(train_env)
+    agent = build_dqn_agent(train_env, qnet)
     returns = train(train_py_env, eval_env, agent)
 
+    print("NN summary:")
+    qnet.summary()
     plot_returns_vs_iterations(returns, range(0, num_iterations + 1, eval_interval))
 
     # random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
@@ -76,8 +74,8 @@ def main():
     # create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
 
 
-def build_dqn_agent(env):
-    q_net = build_q_network(env)
+def build_dqn_agent(env, nnet):
+    q_net = nnet
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     train_step_counter = tf.Variable(0)
@@ -155,7 +153,7 @@ def compute_avg_return(environment, policy, num_episodes=10):
     return avg_return.numpy()[0]
 
 
-def train(train_py_env, eval_env, agent) -> List[float]:
+def train(train_env, eval_env, agent) -> List[float]:
     table_name = 'uniform_table'
     replay_buffer_signature = tensor_spec.from_spec(
         agent.collect_data_spec)
@@ -191,12 +189,11 @@ def train(train_py_env, eval_env, agent) -> List[float]:
         table_name,
         sequence_length=2)
 
-    # Reset the environment (why this one?)
-    time_step = train_py_env.reset()
+    time_step = train_env.reset()
 
     # Create a driver to collect experience.
     collect_driver = py_driver.PyDriver(
-        train_py_env,
+        train_env,
         py_tf_eager_policy.PyTFEagerPolicy(
         agent.collect_policy, use_tf_function=True),
         [rb_observer],
