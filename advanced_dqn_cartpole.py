@@ -11,38 +11,35 @@ You may need the following packages on linux for this to work:
 
 sudo apt-get update
 sudo apt-get install -y xvfb ffmpeg freeglut3-dev
+
+## todo
+- why 3 different envs?
+- print NN details
 """
 
 from __future__ import absolute_import, division, print_function
-from random import random
 from typing import List
 
-import numpy as np
-import reverb
-
 import tensorflow as tf
+import reverb
 
 from tf_agents.agents.dqn import dqn_agent
 from tf_agents.drivers import py_driver
 from tf_agents.environments import suite_gym
 from tf_agents.environments import tf_py_environment
-from tf_agents.eval import metric_utils
-from tf_agents.metrics import tf_metrics
 from tf_agents.networks import sequential
 from tf_agents.policies import py_tf_eager_policy
 from tf_agents.policies import random_tf_policy
 from tf_agents.replay_buffers import reverb_replay_buffer
 from tf_agents.replay_buffers import reverb_utils
-from tf_agents.trajectories import trajectory
 from tf_agents.specs import tensor_spec
 from tf_agents.utils import common
 
 import matplotlib.pyplot as plt
-import matplotlib.image as img
 import imageio
 
 # turn this up to >3000 to see decent training results
-num_iterations = 3000
+num_iterations = 200
 eval_interval = num_iterations // 10
 
 initial_collect_steps = 100
@@ -76,10 +73,10 @@ def main():
 
     plot_returns_vs_iterations(returns, range(0, num_iterations + 1, eval_interval))
 
-    random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
-                                                    train_env.action_spec())
-    create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
-    create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
+    # random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
+    #                                                 train_env.action_spec())
+    # create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
+    # create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
 
 
 def build_dqn_agent(env, train_env):
