@@ -42,19 +42,19 @@ import matplotlib.image as img
 import imageio
 
 # turn this up to >3000 to see decent training results
-num_iterations = 200 # @param {type:"integer"}
-eval_interval = num_iterations // 10  # @param {type:"integer"}
+num_iterations = 3000
+eval_interval = num_iterations // 10
 
-initial_collect_steps = 100  # @param {type:"integer"}
+initial_collect_steps = 100
 # note: training hangs when collect_steps_per_iteration = 1:
-collect_steps_per_iteration =   10# @param {type:"integer"}
-replay_buffer_max_length = 100000  # @param {type:"integer"}
+collect_steps_per_iteration =   10
+replay_buffer_max_length = 100000
 
-batch_size = 64  # @param {type:"integer"}
-learning_rate = 1e-3  # @param {type:"number"}
-log_interval = 200  # @param {type:"integer"}
+batch_size = 64
+learning_rate = 1e-3
+log_interval = 200
 
-num_eval_episodes = 10  # @param {type:"integer"}
+num_eval_episodes = 10
 
 
 def main():
@@ -70,6 +70,19 @@ def main():
     train_env = tf_py_environment.TFPyEnvironment(train_py_env)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
+    agent = build_dqn_agent(env, train_env)
+
+    returns = train(env, train_py_env, eval_env, agent)
+
+    plot_returns_vs_iterations(returns, range(0, num_iterations + 1, eval_interval))
+
+    random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
+                                                    train_env.action_spec())
+    create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
+    create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
+
+
+def build_dqn_agent(env, train_env):
     q_net = build_q_network(env)
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
@@ -85,34 +98,12 @@ def main():
 
     agent.initialize()
 
-    random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
-                                                    train_env.action_spec())
-
-    random_return = compute_avg_return(eval_env, random_policy, num_eval_episodes)
-
-    print(f'random policy return: {random_return}')
-
     # (Optional) Optimize by wrapping some of the code in a graph using TF function.
     agent.train = common.function(agent.train)
 
-    # Reset the train step.
     agent.train_step_counter.assign(0)
 
-    print('about to start training')
-
-    returns = train(env, train_py_env, eval_env, agent)
-
-    plot_returns_vs_iterations(returns, range(0, num_iterations + 1, eval_interval))
-    # create_policy_eval_video(eval_env, eval_py_env, random_policy, "random-agent")
-    # create_policy_eval_video(eval_env, eval_py_env, agent.policy, "trained-agent")
-
-
-def plot_returns_vs_iterations(returns, iterations):
-    plt.plot(iterations, returns)
-    plt.ylabel('Average Return')
-    plt.xlabel('Iterations')
-    plt.ylim(top=250)
-    plt.show()
+    return agent
 
 
 def print_env_details(env):
@@ -242,6 +233,14 @@ def train(env, train_py_env, eval_env, agent) -> List[float]:
             returns.append(avg_return)
 
     return returns
+
+
+def plot_returns_vs_iterations(returns, iterations):
+    plt.plot(iterations, returns)
+    plt.ylabel('Average Return')
+    plt.xlabel('Iterations')
+    plt.ylim(top=250)
+    plt.show()
 
 
 def create_policy_eval_video(env, py_env, policy, filename, num_episodes=5, fps=30):
